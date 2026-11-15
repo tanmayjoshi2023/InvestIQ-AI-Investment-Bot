@@ -20,6 +20,11 @@ function clamp(value: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, value))
 }
 
+function missingMetricCount(metrics: FinancialMetrics | null | undefined): number {
+  if (!metrics) return 5
+  return Object.values(metrics).filter((value) => value === null || value === undefined).length
+}
+
 function scorePe(pe: number | null): number {
   if (pe === null) return 50
   if (pe < 12) return 100
@@ -66,21 +71,26 @@ function scoreNewsSentiment(newsArticles?: Array<{ sentiment?: number | null; re
   return clamp(Math.round(50 + average * 40))
 }
 
-function scoreCompetition(competitorData?: Array<{ threatLevel?: number | null }> | null): number {
-  if (!competitorData || competitorData.length === 0) return 55
+function scoreCompetition(competitorData?: Array<{ threatLevel?: number | null }> | null): number | null {
+  if (!competitorData || competitorData.length === 0) return null
   const averageThreat = competitorData.reduce((sum, item) => sum + (item.threatLevel ?? 0.5), 0) / competitorData.length
   return clamp(Math.round(100 - averageThreat * 30))
 }
 
-export function calculateFinancialScore(metrics: FinancialMetrics): number {
-  const subScores = [
+export function calculateFinancialScore(metrics: FinancialMetrics | null | undefined): number {
+  if (!metrics) return 25
+
+  const missingCount = missingMetricCount(metrics)
+  const baseSubScores = [
     scorePe(metrics.peRatio) * 0.2,
     scoreGrowth(metrics.revenueGrowthYoY) * 0.2,
     scoreFcfYield(metrics.freeCashFlowYield) * 0.2,
     scoreMargin(metrics.grossMargin) * 0.2,
     scoreDebt(metrics.debtToEquity) * 0.2,
   ]
-  return Math.round(subScores.reduce((a, b) => a + b, 0))
+  const base = Math.round(baseSubScores.reduce((a, b) => a + b, 0))
+  const qualityPenalty = Math.min(25, missingCount * 7)
+  return clamp(Math.round(base - qualityPenalty), 0, 100)
 }
 
 export function applyRiskTolerance(
@@ -98,42 +108,53 @@ export function applyRiskTolerance(
   return 'PASS'
 }
 
+export function gateBuyVerdict(
+  proposedVerdict: Verdict,
+  scoreVerdict: Verdict,
+  dataQualityScore: number
+): Verdict {
+  if (proposedVerdict !== 'BUY') return proposedVerdict
+  if (scoreVerdict === 'PASS') return 'PASS'
+  if (scoreVerdict !== 'BUY' || dataQualityScore < 0.7) return 'HOLD'
+  return 'BUY'
+}
+
 export function calculateCompositeScore(scores: Omit<ScoreBreakdown, 'composite'>): ScoreBreakdown {
-  const composite = Math.round(
-    scores.financial * WEIGHTS.financial +
-      scores.market * WEIGHTS.market +
-      scores.sentiment * WEIGHTS.sentiment +
-      scores.competition * WEIGHTS.competition +
-      scores.risk * WEIGHTS.risk
+  const availableDimensions = (Object.entries(scores) as Array<[keyof typeof WEIGHTS, number | null]>)
+    .filter((entry): entry is [keyof typeof WEIGHTS, number] => entry[1] !== null)
+  const weightedTotal = availableDimensions.reduce(
+    (total, [dimension, score]) => total + score * WEIGHTS[dimension],
+    0
   )
+  const composite = Math.round(weightedTotal)
   return { ...scores, composite }
 }
 
-/** Deterministic mock metrics keyed by ticker for demo / offline mode */
-export function getMockFinancialMetrics(ticker: string): FinancialMetrics {
-  const seed = ticker.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  const normalized = (seed % 100) / 100
-  return {
-    peRatio: 12 + normalized * 35,
-    revenueGrowthYoY: -0.05 + normalized * 0.35,
-    debtToEquity: 0.2 + normalized * 1.5,
-    grossMargin: 0.25 + normalized * 0.45,
-    freeCashFlowYield: -0.01 + normalized * 0.08,
-  }
-}
-
 export function buildScoreBreakdown(ticker: string, sector?: string, context?: ScoreContext): ScoreBreakdown {
-  const metrics = context?.metrics ?? getMockFinancialMetrics(ticker)
+  const metrics = context?.metrics ?? null
   const financial = calculateFinancialScore(metrics)
+  const missingCount = missingMetricCount(metrics)
+  const qualityPenalty = Math.min(30, missingCount * 6)
+
   const sectorBoost = sector?.toLowerCase().includes('tech') ? 8 : 0
   const newsScore = scoreNewsSentiment(context?.newsArticles)
   const competitionScore = scoreCompetition(context?.competitorData)
-  const riskPressure = (metrics.debtToEquity ?? 0.5) * 24 + (newsScore < 50 ? 12 : 0)
-  const market = clamp(Math.round(financial * 0.55 + newsScore * 0.25 + sectorBoost * 0.2 + 5))
-  const sentiment = clamp(Math.round(newsScore * 0.75 + (metrics.revenueGrowthYoY ?? 0) * 55 + 10))
-  const competition = clamp(Math.round(competitionScore * 0.85 + (sectorBoost > 0 ? 6 : 0)))
-  const risk = clamp(Math.round(100 - financial * 0.3 - riskPressure))
-  return calculateCompositeScore({ financial, market, sentiment, competition, risk })
+  const riskPressure = (metrics?.debtToEquity ?? 0.5) * 24 + (newsScore < 50 ? 12 : 0)
+
+  const market = clamp(Math.round(financial * 0.55 + newsScore * 0.25 + sectorBoost * 0.2 + 5 - qualityPenalty * 0.3))
+  const sentiment = clamp(Math.round(newsScore * 0.75 + (metrics?.revenueGrowthYoY ?? 0) * 55 + 10 - qualityPenalty * 0.25))
+  const competition = competitionScore === null
+    ? null
+    : clamp(Math.round(competitionScore * 0.85 + (sectorBoost > 0 ? 6 : 0) - qualityPenalty * 0.2))
+  const risk = clamp(Math.round(100 - financial * 0.3 - riskPressure - qualityPenalty * 0.5))
+
+  const baseScores = calculateCompositeScore({ financial, market, sentiment, competition, risk })
+  const composite = clamp(baseScores.composite - qualityPenalty, 0, 100)
+
+  return {
+    ...baseScores,
+    composite,
+  }
 }
 
 export { WEIGHTS }

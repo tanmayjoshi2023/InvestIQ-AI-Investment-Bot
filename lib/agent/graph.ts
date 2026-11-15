@@ -2,7 +2,7 @@
  * InvestIQ LangGraph research pipeline
  * Engineering Bible Vol 3 §3.5 execution flow
  *
- * planner → [financial ∥ news ∥ competitor] → scoring → [bull ∥ bear] → judge → verifier
+ * planner → [financial ∥ news ∥ competitor] → scoring → [bull ∥ bear] → judge → evidence availability
  */
 import { StateGraph, START, END } from '@langchain/langgraph'
 import { InvestmentAnalysisAnnotation } from './state'
@@ -41,7 +41,7 @@ export function buildResearchGraph() {
     .addEdge('scoring', 'bear')
     // Judge waits for both debate agents
     .addEdge(['bull', 'bear'], 'judge')
-    // Verifier always runs after judge (non-conditional)
+    // Evidence-reference availability is reported after the judge (not factual verification).
     .addEdge('judge', 'verifier')
     .addEdge('verifier', END)
 

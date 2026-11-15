@@ -79,13 +79,3 @@ ${searchResults}
 OUTPUT: JSON matching CompetitorAnalysisSchema`
 }
 
-export function verifierPrompt(verdictText: string, sources: string): string {
-  return `ROLE: Hallucination verifier — fast factual check pass.
-TASK: Read every factual claim in the verdict output. Check if it appears in source documents.
-If groundingScore < 0.8, flag uncited claims.
-VERDICT OUTPUT:
-${verdictText}
-SOURCES:
-${sources}
-OUTPUT: JSON matching VerifierOutputSchema`
-}

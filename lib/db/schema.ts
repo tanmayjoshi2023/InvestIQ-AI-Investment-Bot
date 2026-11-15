@@ -127,8 +127,8 @@ export const analyses = pgTable(
     bearArguments: text('bearArguments'),
     riskScore: real('riskScore'), // 0-100
     opportunityScore: real('opportunityScore'), // 0-100
-    groundingScore: real('groundingScore'), // 0-1
-    hallucinations: jsonb('hallucinations'), // Any detected hallucinations
+    groundingScore: real('groundingScore'), // Legacy field; new writes leave this null because factual verification is not performed
+    hallucinations: jsonb('hallucinations'), // Legacy column storing claims without resolvable source references
     processingTimeMs: integer('processingTimeMs'),
     llmProvider: varchar('llmProvider', { length: 50 }),
     llmModel: varchar('llmModel', { length: 50 }),

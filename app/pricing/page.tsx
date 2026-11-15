@@ -14,7 +14,7 @@ const plans = [
     title: 'Starter',
     price: '$9',
     description: 'Perfect for occasional investors who want fast AI analysis.',
-    features: ['Monthly analysis cap: 5', 'Basic score breakdown', 'Email support'],
+    features: ['Monthly analysis cap: 10', 'Basic score breakdown', 'Email support'],
   },
   {
     title: 'Growth',

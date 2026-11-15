@@ -143,15 +143,10 @@ export function VerdictBadge({
         ${className}
       `}
       role="status"
-      aria-label={`${verdict} verdict ${confidence ? `with ${confidence}% confidence` : ''}`}
+      aria-label={`${verdict} verdict${confidence !== undefined ? `; heuristic model confidence ${confidence} out of 100, not a probability` : ''}`}
     >
       <div className={`${sizeClasses.icon} flex-shrink-0`}>{config.icon}</div>
       {showLabel && <span className={sizeClasses.text}>{verdict}</span>}
-      {confidence !== undefined && (
-        <span className={`${sizeClasses.text} opacity-80 font-medium ml-1`}>
-          {Math.round(confidence)}%
-        </span>
-      )}
     </div>
   )
 }

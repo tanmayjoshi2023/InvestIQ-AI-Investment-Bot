@@ -11,47 +11,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'InvestIQ - AI-Powered Investment Research',
-  description: 'Get intelligent investment analysis in under 90 seconds powered by advanced AI agents',
-  generator: 'v0.app',
-  metadataBase: new URL('http://localhost:3000'),
+  description: 'Evidence-aware investment research with transparent scores, sources, and risk analysis.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: '/',
     siteName: 'InvestIQ',
     title: 'InvestIQ - AI-Powered Investment Research',
-    description: 'Get intelligent investment analysis in under 90 seconds',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'InvestIQ',
-      },
-    ],
+    description: 'Evidence-aware investment research with transparent scores, sources, and risk analysis.',
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'InvestIQ - AI-Powered Investment Research',
-    description: 'Get intelligent investment analysis in under 90 seconds',
-    images: ['/og-image.png'],
+    description: 'Evidence-aware investment research with transparent scores, sources, and risk analysis.',
   },
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
   },
 }
 

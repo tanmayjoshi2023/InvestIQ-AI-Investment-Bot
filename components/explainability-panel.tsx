@@ -10,7 +10,8 @@ interface ExplainabilityPanelProps {
   className?: string
 }
 
-function scoreColor(score: number): string {
+function scoreColor(score: number | null): string {
+  if (score === null) return 'text-muted-foreground border-border bg-muted/30'
   if (score > 65) return 'text-verdict-success border-verdict-success/30 bg-green-50 dark:bg-green-950/30'
   if (score >= 40) return 'text-verdict-warning border-verdict-warning/30 bg-amber-50 dark:bg-amber-950/30'
   return 'text-verdict-error border-verdict-error/30 bg-red-50 dark:bg-red-950/30'
@@ -55,21 +56,26 @@ export function ExplainabilityPanelComponent({ explainability, className = '' }:
               )}
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold">{dim.score}</span>
-              <span className="text-xs opacity-70">/100 · weight {dim.weight}%</span>
+              <span className="text-2xl font-bold">{dim.score ?? 'Unavailable'}</span>
+              {dim.score !== null && <span className="text-xs opacity-70">/100 · configured weight {dim.weight}%</span>}
             </div>
             {expanded === dim.key && (
               <p className="mt-2 text-xs opacity-80">
-                Deterministic score from financial metrics engine before AI interpretation.
+                {dim.score === null
+                  ? 'No validated competitor evidence was available, so this dimension is unavailable and contributes no points. Other configured weights are unchanged.'
+                  : 'Deterministic score from available inputs; it has not been calibrated against investment outcomes.'}
               </p>
             )}
           </button>
         ))}
       </div>
 
-      {sources.length > 0 && (
-        <div className="pt-4 border-t space-y-2">
-          <h3 className="text-sm font-semibold text-foreground">Data Sources</h3>
+      <div className="pt-4 border-t space-y-2">
+        <h3 className="text-sm font-semibold text-foreground">Source Availability</h3>
+        <p className="text-xs text-muted-foreground">
+          {sources.length} source{sources.length === 1 ? '' : 's'} retrieved. Factual claims were not independently verified against source contents.
+        </p>
+        {sources.length > 0 && (
           <ul className="space-y-1">
             {sources.map((source, i) => (
               <li key={`${source.url}-${i}`}>
@@ -84,8 +90,8 @@ export function ExplainabilityPanelComponent({ explainability, className = '' }:
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
     </Card>
   )
 }

@@ -6,7 +6,7 @@ interface Reasoning {
   id: string
   type: 'bullish' | 'bearish' | 'neutral'
   point: string
-  confidence: number
+  confidence?: number
   sources: number[] // Index references to citations
 }
 
@@ -52,15 +52,11 @@ export function ReasoningList({
             </span>
           )}
         </p>
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 flex-grow bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full ${reasoning.type === 'bullish' ? 'bg-green-500' : reasoning.type === 'bearish' ? 'bg-red-500' : 'bg-amber-500'}`}
-              style={{ width: `${reasoning.confidence}%` }}
-            />
-          </div>
-          <span className="text-xs text-muted-foreground">{Math.round(reasoning.confidence)}%</span>
-        </div>
+        {reasoning.confidence !== undefined && (
+          <p className="text-xs text-muted-foreground">
+            Model confidence (heuristic, not a probability): {Math.round(reasoning.confidence)}/100
+          </p>
+        )}
       </div>
     </div>
   )

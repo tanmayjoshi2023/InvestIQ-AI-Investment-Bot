@@ -38,7 +38,7 @@ interface AnalysisRecord {
   riskScore?: number | null
   opportunityScore?: number | null
   reasoning?: string | null
-  hallucinations?: string[] | null
+  unreferencedClaims?: string[] | null
   createdAt: Date
   agents?: AgentExecution[]
 }
@@ -51,7 +51,7 @@ interface AnalysisDetailViewProps {
 export function AnalysisDetailView({ analysis, companyName }: AnalysisDetailViewProps) {
   const [viewMode, setViewMode] = React.useState<'standard' | 'debate'>('standard')
   const verdictType = (analysis.verdict || 'HOLD') as Verdict
-  const confidencePct = Math.round((analysis.confidence ?? 0.75) * 100)
+  const confidencePct = analysis.confidence == null ? undefined : Math.round(analysis.confidence * 100)
 
   const explainability: ExplainabilityPanel | null = useMemo(() => {
     if (!analysis.reasoning) return null
@@ -98,10 +98,9 @@ export function AnalysisDetailView({ analysis, companyName }: AnalysisDetailView
       id: `bull-${i}`,
       type: 'bullish' as const,
       point,
-      confidence: confidencePct,
       sources: [],
     }))
-  }, [analysis.bullArguments, confidencePct])
+  }, [analysis.bullArguments])
 
   const bearish = useMemo(() => {
     if (!analysis.bearArguments) return []
@@ -109,19 +108,18 @@ export function AnalysisDetailView({ analysis, companyName }: AnalysisDetailView
       id: `bear-${i}`,
       type: 'bearish' as const,
       point,
-      confidence: Math.round(confidencePct * 0.85),
       sources: [],
     }))
-  }, [analysis.bearArguments, confidencePct])
+  }, [analysis.bearArguments])
 
   const bullConfidence = useMemo(() => {
     const agent = (analysis.agents || []).find((a) => a.agentType === 'bull')
-    return agent?.confidence ? Math.round(agent.confidence * 100) : 75
+    return agent?.confidence == null ? undefined : Math.round(agent.confidence * 100)
   }, [analysis.agents])
 
   const bearConfidence = useMemo(() => {
     const agent = (analysis.agents || []).find((a) => a.agentType === 'bear')
-    return agent?.confidence ? Math.round(agent.confidence * 100) : 70
+    return agent?.confidence == null ? undefined : Math.round(agent.confidence * 100)
   }, [analysis.agents])
 
   const debateBullPoints = useMemo(() => {
@@ -150,6 +148,8 @@ export function AnalysisDetailView({ analysis, companyName }: AnalysisDetailView
     bearArguments: analysis.bearArguments ?? null,
     riskScore: analysis.riskScore ?? null,
     opportunityScore: analysis.opportunityScore ?? null,
+    sources: explainability?.sources ?? [],
+    unreferencedClaims: analysis.unreferencedClaims ?? [],
     createdAt: analysis.createdAt,
   }
 
@@ -164,7 +164,7 @@ export function AnalysisDetailView({ analysis, companyName }: AnalysisDetailView
   const metrics = [
     { label: 'Composite Score', value: explainability?.scores.composite ?? analysis.opportunityScore ?? '—', unit: explainability ? '/100' : '' },
     { label: 'Risk Score', value: analysis.riskScore ?? '—', unit: '/100' },
-    { label: 'Confidence', value: confidencePct, unit: '%', trend: 'up' as const },
+    { label: 'Model confidence (heuristic)', value: confidencePct ?? '—', unit: confidencePct === undefined ? '' : '/100' },
     { label: 'Analyzed', value: new Date(analysis.createdAt).toLocaleDateString(), unit: '' },
   ]
 
@@ -285,7 +285,7 @@ export function AnalysisDetailView({ analysis, companyName }: AnalysisDetailView
               confidence={confidencePct}
               summary={analysis.summary || 'Analysis complete.'}
               explainability={explainability}
-              hallucinations={analysis.hallucinations}
+              unreferencedClaims={analysis.unreferencedClaims}
             />
           )}
 

@@ -14,15 +14,15 @@ export const metadata = {
 
 const steps = [
   { title: 'Search', description: 'Enter any publicly traded company ticker' },
-  { title: 'Analyze', description: '8 AI agents analyze financials, news, and competitors' },
-  { title: 'Verify', description: 'Judge and verifier agents validate every claim' },
+  { title: 'Analyze', description: 'A multi-stage workflow uses limited financial ratios and available news sources' },
+  { title: 'Review Evidence', description: 'Inspect retrieved sources; claim-level factual verification is not performed' },
   { title: 'Decide', description: 'Get a clear BUY, HOLD, or PASS verdict' },
 ]
 
 const features = [
-  { icon: Zap, text: 'Live streaming analysis with 8 specialized AI agents' },
-  { icon: Shield, text: 'Source-backed claims with citations' },
-  { icon: BarChart3, text: 'Complete analysis in under 90 seconds' },
+  { icon: Zap, text: 'Live progress through research, scoring, debate and judgment stages' },
+  { icon: Shield, text: 'Retrieved sources are listed separately from factual verification' },
+  { icon: BarChart3, text: 'Selected score dimensions with uncalibrated thresholds' },
   { icon: TrendingUp, text: 'Bull vs Bear debate before final verdict' },
 ]
 
@@ -40,7 +40,7 @@ export default async function ResearchPage() {
         <div className="space-y-2">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">Investment Research</h1>
           <p className="text-lg text-muted-foreground">
-            AI-powered analysis with real-time agent insights
+            AI-assisted analysis with live progress events; external data freshness varies
           </p>
         </div>
 
