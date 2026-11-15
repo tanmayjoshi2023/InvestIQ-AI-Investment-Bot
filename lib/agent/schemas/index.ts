@@ -21,13 +21,13 @@ export const PlannerOutputSchema = z.object({
 
 export const BullPointSchema = z.object({
   point: z.string().min(10),
-  sourceIndex: z.number().int().positive(),
+  sourceIndex: z.number().int().min(0),
   specificity: z.number().min(1).max(5),
 })
 
 export const BearPointSchema = z.object({
   point: z.string().min(10),
-  sourceIndex: z.number().int().positive(),
+  sourceIndex: z.number().int().min(0),
   severity: z.number().min(1).max(5),
 })
 
@@ -48,12 +48,6 @@ export const VerdictSchema = z.object({
   bullPointsUsed: z.array(z.number()),
   bearPointsUsed: z.array(z.number()),
   contestedPoints: z.array(z.string()),
-})
-
-export const VerifierOutputSchema = z.object({
-  groundingScore: z.number().min(0).max(1),
-  uncitedClaims: z.array(z.string()),
-  verifiedCitations: z.array(CitationSchema),
 })
 
 export const NewsAnalysisSchema = z.object({

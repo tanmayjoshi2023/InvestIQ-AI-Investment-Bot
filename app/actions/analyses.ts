@@ -78,6 +78,9 @@ export async function getAnalysisWithAgents(analysisId: string) {
 
   return {
     ...analysis,
+    unreferencedClaims: Array.isArray(analysis.hallucinations)
+      ? (analysis.hallucinations as unknown[]).filter((claim): claim is string => typeof claim === 'string')
+      : [],
     agents,
   }
 }
@@ -162,8 +165,8 @@ export async function persistAnalysisResults(
         bearArguments: state.bearArguments ?? null,
         riskScore: state.riskScore ?? null,
         opportunityScore: state.opportunityScore ?? null,
-        groundingScore: state.groundingScore ?? null,
-        hallucinations: state.hallucinations ?? [],
+        groundingScore: null,
+        hallucinations: state.unreferencedClaims ?? [],
         processingTimeMs: state.totalExecutionTimeMs,
         llmProvider: 'google',
         llmModel: 'gemini-2.5-flash',

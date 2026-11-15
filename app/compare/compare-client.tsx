@@ -154,7 +154,7 @@ export function CompareClient() {
         <div className="text-center py-16 space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-brand-blue mx-auto" />
           <p className="text-muted-foreground text-sm">
-            8 AI agents are analyzing both stocks in parallel. This may take up to 30 seconds...
+            Two multi-stage analyses are running in parallel. Completion time depends on provider availability.
           </p>
         </div>
       )}
@@ -174,12 +174,12 @@ export function CompareClient() {
                   <p className="text-sm text-muted-foreground">{compareData.company1.name}</p>
                 </div>
                 {compareData.company1.analysis ? (
-                  <VerdictBadge
-                    verdict={compareData.company1.analysis.verdict as Verdict}
-                    confidence={Math.round((compareData.company1.analysis.confidence || 0.75) * 100)}
-                    size="lg"
-                    variant="glow"
-                  />
+                  <div className="space-y-1 text-right">
+                    <VerdictBadge verdict={compareData.company1.analysis.verdict as Verdict} size="lg" variant="glow" />
+                    {compareData.company1.analysis.confidence != null && (
+                      <p className="text-xs text-muted-foreground">Model confidence (heuristic): {Math.round(compareData.company1.analysis.confidence * 100)}/100</p>
+                    )}
+                  </div>
                 ) : (
                   <span className="text-sm text-red-500">Analysis Failed</span>
                 )}
@@ -199,12 +199,12 @@ export function CompareClient() {
                   <p className="text-sm text-muted-foreground">{compareData.company2.name}</p>
                 </div>
                 {compareData.company2.analysis ? (
-                  <VerdictBadge
-                    verdict={compareData.company2.analysis.verdict as Verdict}
-                    confidence={Math.round((compareData.company2.analysis.confidence || 0.75) * 100)}
-                    size="lg"
-                    variant="glow"
-                  />
+                  <div className="space-y-1 text-right">
+                    <VerdictBadge verdict={compareData.company2.analysis.verdict as Verdict} size="lg" variant="glow" />
+                    {compareData.company2.analysis.confidence != null && (
+                      <p className="text-xs text-muted-foreground">Model confidence (heuristic): {Math.round(compareData.company2.analysis.confidence * 100)}/100</p>
+                    )}
+                  </div>
                 ) : (
                   <span className="text-sm text-red-500">Analysis Failed</span>
                 )}
@@ -285,13 +285,18 @@ export function CompareClient() {
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-3.5 px-4 font-medium text-foreground">Source Grounding Score</td>
+                    <td className="py-3.5 px-4 font-medium text-foreground">Sources Retrieved</td>
                     <td className="py-3.5 px-4 text-center text-foreground">
-                      {compareData.company1.analysis?.groundingScore ? `${Math.round(compareData.company1.analysis.groundingScore * 100)}%` : '—'}
+                      {compareData.company1.analysis?.explainability?.sources.length ?? 0}
                     </td>
                     <td className="py-3.5 px-4 text-center text-foreground">
-                      {compareData.company2.analysis?.groundingScore ? `${Math.round(compareData.company2.analysis.groundingScore * 100)}%` : '—'}
+                      {compareData.company2.analysis?.explainability?.sources.length ?? 0}
                     </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 px-4 font-medium text-foreground">Factual Claim Verification</td>
+                    <td className="py-3.5 px-4 text-center text-muted-foreground">Not performed</td>
+                    <td className="py-3.5 px-4 text-center text-muted-foreground">Not performed</td>
                   </tr>
                   <tr>
                     <td className="py-3.5 px-4 font-medium text-foreground">Total Execution Time</td>
@@ -322,10 +327,7 @@ export function CompareClient() {
                   companyName={compareData.company1.name}
                   bullPoints={getDebatePoints(compareData.company1.analysis.bullArguments)}
                   bearPoints={getDebatePoints(compareData.company1.analysis.bearArguments)}
-                  bullConfidence={78}
-                  bearConfidence={68}
                   verdict={compareData.company1.analysis.verdict as Verdict}
-                  confidence={Math.round((compareData.company1.analysis.confidence || 0.75) * 100)}
                   reasoning={compareData.company1.analysis.summary || ''}
                   citations={(compareData.company1.analysis.explainability?.sources || []).map((s) => ({
                     title: s.title,
@@ -347,10 +349,7 @@ export function CompareClient() {
                   companyName={compareData.company2.name}
                   bullPoints={getDebatePoints(compareData.company2.analysis.bullArguments)}
                   bearPoints={getDebatePoints(compareData.company2.analysis.bearArguments)}
-                  bullConfidence={78}
-                  bearConfidence={68}
                   verdict={compareData.company2.analysis.verdict as Verdict}
-                  confidence={Math.round((compareData.company2.analysis.confidence || 0.75) * 100)}
                   reasoning={compareData.company2.analysis.summary || ''}
                   citations={(compareData.company2.analysis.explainability?.sources || []).map((s) => ({
                     title: s.title,

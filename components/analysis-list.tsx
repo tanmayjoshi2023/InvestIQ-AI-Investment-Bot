@@ -97,9 +97,6 @@ export function AnalysisList() {
                         verdict={analysis.verdict}
                         variant="subtle"
                         size="sm"
-                        confidence={
-                          analysis.confidence ? Math.round(analysis.confidence * 100) : undefined
-                        }
                       />
                     )}
                   </div>

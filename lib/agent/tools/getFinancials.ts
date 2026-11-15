@@ -1,16 +1,41 @@
 import YahooFinance from 'yahoo-finance2'
 import type { FinancialMetrics } from '@/lib/agent/types'
 import { FinancialMetricsSchema } from '@/lib/agent/schemas'
-import { getMockFinancialMetrics } from '@/lib/agent/scoring'
 import { fetchWithTimeout, cached } from './http'
 
 export interface FinancialDataResult extends FinancialMetrics {
   ticker: string
   source: 'alpha_vantage' | 'yahoo_finance' | 'manual'
   stale?: boolean
+  missingMetrics?: string[]
+  dataQuality?: 'high' | 'partial' | 'unavailable'
 }
 
 const yfInstance = new (YahooFinance as any)({ suppressNotices: ['yahooSurvey'] })
+
+function getMissingMetrics(data: Partial<FinancialMetrics>): string[] {
+  return Object.entries(data)
+    .filter(([, value]) => value === null || value === undefined)
+    .map(([key]) => key)
+}
+
+function withQuality(ticker: string, metrics: Partial<FinancialMetrics>, source: FinancialDataResult['source']): FinancialDataResult {
+  const missingMetrics = getMissingMetrics(metrics)
+  const quality = missingMetrics.length === 0 ? 'high' : missingMetrics.length >= 4 ? 'unavailable' : 'partial'
+
+  return {
+    ticker,
+    peRatio: metrics.peRatio ?? null,
+    revenueGrowthYoY: metrics.revenueGrowthYoY ?? null,
+    debtToEquity: metrics.debtToEquity ?? null,
+    grossMargin: metrics.grossMargin ?? null,
+    freeCashFlowYield: metrics.freeCashFlowYield ?? null,
+    source,
+    stale: source === 'manual',
+    missingMetrics,
+    dataQuality: quality,
+  }
+}
 
 async function fetchAlphaVantage(ticker: string): Promise<FinancialDataResult | null> {
   const apiKey = process.env.ALPHA_VANTAGE_API_KEY
@@ -23,19 +48,17 @@ async function fetchAlphaVantage(ticker: string): Promise<FinancialDataResult | 
     const data = await res.json()
     if (data.Note || data.Information || !data.Symbol) return null
 
-    return FinancialMetricsSchema.parse({
+    const metrics = FinancialMetricsSchema.parse({
       ticker,
       peRatio: data.PERatio ? parseFloat(data.PERatio) : null,
-      revenueGrowthYoY: data.QuarterlyRevenueGrowthYOY
-        ? parseFloat(data.QuarterlyRevenueGrowthYOY)
-        : null,
+      revenueGrowthYoY: data.QuarterlyRevenueGrowthYOY ? parseFloat(data.QuarterlyRevenueGrowthYOY) : null,
       debtToEquity: data.DebtToEquity ? parseFloat(data.DebtToEquity) : null,
-      grossMargin: data.GrossProfitTTM && data.RevenueTTM
-        ? parseFloat(data.GrossProfitTTM) / parseFloat(data.RevenueTTM)
-        : null,
+      grossMargin: data.GrossProfitTTM && data.RevenueTTM ? parseFloat(data.GrossProfitTTM) / parseFloat(data.RevenueTTM) : null,
       freeCashFlowYield: null,
       source: 'alpha_vantage',
     })
+
+    return withQuality(ticker, metrics, 'alpha_vantage')
   } catch {
     return null
   }
@@ -43,8 +66,6 @@ async function fetchAlphaVantage(ticker: string): Promise<FinancialDataResult | 
 
 async function fetchYahooFinance(ticker: string): Promise<FinancialDataResult | null> {
   try {
-    // yahoo-finance2 has its own internal fetch; guard with a timeout race so a
-    // hung request can never stall the pipeline.
     const result = await Promise.race([
       yfInstance.quoteSummary(ticker, {
         modules: ['summaryDetail', 'financialData', 'defaultKeyStatistics'],
@@ -61,9 +82,9 @@ async function fetchYahooFinance(ticker: string): Promise<FinancialDataResult | 
 
     const freeCashflow = result.financialData?.freeCashflow || null
     const marketCap = result.summaryDetail?.marketCap || null
-    const freeCashFlowYield = (freeCashflow && marketCap) ? freeCashflow / marketCap : null
+    const freeCashFlowYield = freeCashflow && marketCap ? freeCashflow / marketCap : null
 
-    return FinancialMetricsSchema.parse({
+    const metrics = FinancialMetricsSchema.parse({
       ticker,
       peRatio,
       revenueGrowthYoY,
@@ -72,6 +93,8 @@ async function fetchYahooFinance(ticker: string): Promise<FinancialDataResult | 
       freeCashFlowYield,
       source: 'yahoo_finance',
     })
+
+    return withQuality(ticker, metrics, 'yahoo_finance')
   } catch (error) {
     console.error('[fetchYahooFinance] failed:', error)
     return null
@@ -79,9 +102,8 @@ async function fetchYahooFinance(ticker: string): Promise<FinancialDataResult | 
 }
 
 /**
- * Fetch financial metrics. Tries live providers first (cached for 10 min), then
- * degrades to deterministic ticker-seeded metrics flagged `stale` so the rest of
- * the pipeline always has data to work with instead of crashing.
+ * Live providers are preferred, but if they are unavailable we intentionally return
+ * partial or empty metrics instead of synthetic numbers. This preserves truthfulness.
  */
 export async function getFinancials(ticker: string): Promise<FinancialDataResult> {
   return cached(`financials:${ticker}`, async () => {
@@ -91,8 +113,13 @@ export async function getFinancials(ticker: string): Promise<FinancialDataResult
     const liveYF = await fetchYahooFinance(ticker)
     if (liveYF) return liveYF
 
-    console.warn(`[getFinancials] live providers unavailable for ${ticker}, using deterministic fallback`)
-    const mock = getMockFinancialMetrics(ticker)
-    return { ticker, ...mock, source: 'manual' as const, stale: true }
+    console.warn(`[getFinancials] no usable financial data for ${ticker}; returning unavailable metrics`)
+    return withQuality(ticker, {
+      peRatio: null,
+      revenueGrowthYoY: null,
+      debtToEquity: null,
+      grossMargin: null,
+      freeCashFlowYield: null,
+    }, 'manual')
   })
 }

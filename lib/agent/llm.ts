@@ -13,7 +13,7 @@
  *     pipeline always completes.
  *
  * Only the reasoning agents (planner, bull, bear, judge) call the LLM. The
- * research agents (news, competitor) and the verifier are fully deterministic.
+ * research agents (news, competitor) and evidence-availability stage are deterministic.
  */
 import { generateObject } from 'ai'
 import type { z } from 'zod'
@@ -25,7 +25,6 @@ export const TOKEN_BUDGETS = {
   bull:       { input: 12000, output: 2000 },
   bear:       { input: 12000, output: 2000 },
   judge:      { input: 16000, output: 2000 },
-  verifier:   { input: 8000,  output: 1500 },
 } as const
 
 export type AgentModel = keyof typeof TOKEN_BUDGETS

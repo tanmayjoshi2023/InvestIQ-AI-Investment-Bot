@@ -2,17 +2,18 @@ import React, { type JSX } from 'react'
 import { Card } from '@/components/ui/card'
 import { VerdictBadge } from '@/components/ui/verdict-badge'
 import type { ExplainabilityPanel } from '@/lib/agent/types'
+import { describeEvidenceAvailability } from '@/lib/agent/evidence'
 
 interface VerdictCardProps {
   verdict: 'BUY' | 'HOLD' | 'PASS'
-  confidence: number
+  confidence?: number | null
   targetPrice?: number
   currentPrice?: number
   upside?: number
   timeframe?: string
   summary: string
   explainability?: ExplainabilityPanel | null
-  hallucinations?: string[] | null
+  unreferencedClaims?: string[] | null
   className?: string
 }
 
@@ -25,7 +26,7 @@ export function VerdictCard({
   timeframe = '12 months',
   summary,
   explainability = null,
-  hallucinations = null,
+  unreferencedClaims = null,
   className = '',
 }: VerdictCardProps): JSX.Element {
   return (
@@ -33,14 +34,15 @@ export function VerdictCard({
       {/* Verdict Badge and Confidence */}
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <VerdictBadge verdict={verdict} size="lg" confidence={confidence} />
-          <p className="text-sm text-muted-foreground">
-            Confidence: <span className="font-semibold text-foreground">{Math.round(confidence)}%</span>
-          </p>
+          <VerdictBadge verdict={verdict} size="lg" confidence={confidence ?? undefined} />
+          {confidence !== undefined && confidence !== null && (
+            <p className="text-sm text-muted-foreground">
+              Model confidence (heuristic, not a probability): <span className="font-semibold text-foreground">{Math.round(confidence)}/100</span>
+            </p>
+          )}
         </div>
 
-        {/* Confidence Ring */}
-        <svg className="w-20 h-20" viewBox="0 0 100 100">
+        {confidence !== undefined && confidence !== null && <svg className="w-20 h-20" viewBox="0 0 100 100">
           <circle
             cx="50"
             cy="50"
@@ -67,9 +69,9 @@ export function VerdictCard({
             textAnchor="middle"
             className="text-lg font-bold fill-foreground"
           >
-            {Math.round(confidence)}%
+            {Math.round(confidence)}/100
           </text>
-        </svg>
+        </svg>}
       </div>
 
       {/* Price Metrics */}
@@ -115,7 +117,7 @@ export function VerdictCard({
             </div>
             <div className="p-2 bg-muted/40 rounded-lg text-center border">
               <p className="text-[10px] text-muted-foreground font-semibold uppercase">Competition</p>
-              <p className="text-lg font-bold text-foreground mt-0.5">{explainability.scores.competition}</p>
+              <p className="text-lg font-bold text-foreground mt-0.5">{explainability.scores.competition ?? 'Unavailable'}</p>
             </div>
             <div className="p-2 bg-muted/40 rounded-lg text-center border">
               <p className="text-[10px] text-muted-foreground font-semibold uppercase">Risk / Safety</p>
@@ -132,40 +134,14 @@ export function VerdictCard({
       {/* Evidence & Verification Drivers */}
       {explainability?.scores && (
         <div className="border-t pt-4 space-y-2">
-          <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider">Verdict Drivers</h4>
+          <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider">Heuristic Score Components</h4>
           <ul className="space-y-1.5 pl-4 list-disc text-sm text-foreground/80 leading-relaxed">
-            {explainability.scores.financial >= 70 && (
-              <li>Outstanding balance sheet and income statement quality.</li>
-            )}
-            {explainability.scores.financial < 70 && explainability.scores.financial >= 50 && (
-              <li>Stable financial foundation with minor metrics pressures.</li>
-            )}
-            {explainability.scores.financial < 50 && (
-              <li>Elevated financial pressures detected in margins or debt load.</li>
-            )}
-            {explainability.scores.sentiment >= 60 && (
-              <li>Predominantly positive media coverage and analyst sentiment.</li>
-            )}
-            {explainability.scores.sentiment < 60 && (
-              <li>Mixed or cautious recent public sentiment and news flow.</li>
-            )}
-            {explainability.scores.competition >= 60 && (
-              <li>Strong competitive moat and market position relative to peers.</li>
-            )}
-            {explainability.scores.competition < 60 && (
-              <li>Active competitive threats and pricing pressures from rivals.</li>
-            )}
-            {explainability.scores.risk >= 60 && (
-              <li>Low structural risk with comfortable debt and leverage limits.</li>
-            )}
-            {explainability.scores.risk < 60 && (
-              <li>Significant operational or financial leverage risks present.</li>
-            )}
-            {(hallucinations?.length ?? 0) === 0 ? (
-              <li>Verifier confirmed 100% citation grounding for all thesis claims.</li>
-            ) : (
-              <li>Verifier flagged some arguments with limited primary documentation.</li>
-            )}
+            <li>Financial component: {explainability.scores.financial}/100 from a limited set of ratios; not a full statement analysis.</li>
+            <li>Sentiment component: {explainability.scores.sentiment}/100 from a keyword-based news heuristic.</li>
+            <li>Risk component: {explainability.scores.risk}/100 from the configured formula; not a measured loss probability.</li>
+            {explainability.scores.competition === null
+              ? <li>Competition component unavailable: no validated peer evidence was retrieved.</li>
+              : <li>Competition component: {explainability.scores.competition}/100; this is not a validated peer comparison.</li>}
           </ul>
         </div>
       )}
@@ -175,6 +151,15 @@ export function VerdictCard({
         <h4 className="font-semibold text-foreground">Key Takeaway</h4>
         <p className="text-sm text-foreground/80 leading-relaxed">{summary}</p>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        {describeEvidenceAvailability(explainability?.sources.length ?? 0, unreferencedClaims?.length ?? 0)}
+      </p>
+      {unreferencedClaims && unreferencedClaims.length > 0 && (
+        <ul className="list-disc pl-5 text-xs text-muted-foreground">
+          {unreferencedClaims.map((claim, index) => <li key={`${index}-${claim}`}>{claim}</li>)}
+        </ul>
+      )}
     </Card>
   )
 }

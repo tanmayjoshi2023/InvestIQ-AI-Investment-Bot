@@ -8,7 +8,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'InvestIQ - AI-Powered Investment Research',
-  description: 'Get intelligent investment analysis in under 90 seconds powered by advanced AI agents',
+  description: 'AI-assisted company research using available financial, news and filing sources.',
 }
 
 export default async function HomePage() {
@@ -25,7 +25,7 @@ export default async function HomePage() {
               <div>
                 <h1 className="text-4xl font-bold">Investment Analysis</h1>
                 <p className="text-lg text-muted-foreground mt-2">
-                  Get AI-powered investment research in under 90 seconds
+                  Review a multi-stage company research report with its source availability and limitations
                 </p>
               </div>
               <CompanySearchBar />
@@ -71,7 +71,7 @@ export default async function HomePage() {
             Investment Research at the Speed of AI
           </h1>
           <p className="text-xl text-muted-foreground">
-            Get comprehensive investment analysis powered by 8 specialized AI agents in under 90 seconds. Make informed decisions with confidence.
+            Explore a multi-stage research report that combines limited financial ratios, news signals and opposing arguments. Outputs are heuristic and are not independently fact-checked.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Button size="lg" className="gap-2 text-base h-12" nativeButton={false} render={
@@ -90,23 +90,23 @@ export default async function HomePage() {
           {[
             {
               icon: Zap,
-              title: '8 AI Agents',
-              description: 'Specialized financial analysis from multiple perspectives',
+              title: 'Multi-stage Analysis',
+              description: 'Financial, news, scoring, debate and judgment stages',
             },
             {
               icon: BarChart3,
-              title: 'Real-time Analysis',
-              description: 'Latest market data and company financials',
+              title: 'Provider Lookups',
+              description: 'Selected financial ratios, headlines and filing references when available',
             },
             {
               icon: Shield,
-              title: 'Verified Facts',
-              description: 'Every claim backed by credible sources',
+              title: 'Source Availability',
+              description: 'Review retrieved sources; factual claims are not independently verified',
             },
             {
               icon: TrendingUp,
-              title: '90 Seconds',
-              description: 'Complete analysis faster than manual research',
+              title: 'Human Review',
+              description: 'Check the source list and verify material claims independently',
             },
           ].map((feature, idx) => {
             const Icon = feature.icon
@@ -134,8 +134,8 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             {[
               { number: '1', title: 'Search', description: 'Enter any ticker symbol' },
-              { number: '2', title: 'Analyze', description: '8 agents analyze from different angles' },
-              { number: '3', title: 'Verify', description: 'Judge agent validates all claims' },
+              { number: '2', title: 'Analyze', description: 'Research nodes gather limited source data and calculate heuristic scores' },
+              { number: '3', title: 'Review Evidence', description: 'Inspect retrieved source references; factual claim verification is not performed' },
               { number: '4', title: 'Decide', description: 'Get a clear BUY/HOLD/PASS verdict' },
             ].map((step, idx) => (
               <div key={idx} className="relative">

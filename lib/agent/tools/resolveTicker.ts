@@ -51,7 +51,7 @@ async function searchAlphaVantage(keywords: string): Promise<TickerResult | null
         return {
           ticker: match['1. symbol'].toUpperCase(),
           name: match['2. name'],
-          sector: match['8. currency'] || 'Unknown',
+          sector: match['4. region'] || match['8. currency'] || 'Unknown',
           found: true,
         }
       }

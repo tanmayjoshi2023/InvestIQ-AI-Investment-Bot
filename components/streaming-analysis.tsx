@@ -46,7 +46,7 @@ const PIPELINE_AGENTS = [
   'Bull Case',
   'Bear Case',
   'Judge',
-  'Verifier',
+  'Evidence Availability',
 ]
 
 export function StreamingAnalysis({
@@ -76,6 +76,7 @@ export function StreamingAnalysis({
     bearArguments: string
     explainability?: ExplainabilityPanel
     riskScore?: number
+    unreferencedClaims?: string[]
   } | null>(null)
 
   const runAnalysis = useCallback(async () => {
@@ -190,6 +191,7 @@ export function StreamingAnalysis({
         bearArguments: string
         explainability?: ExplainabilityPanel
         riskScore?: number
+        unreferencedClaims?: string[]
       }
       setResult(data)
       if (data.ticker) setCurrentTicker(data.ticker)
@@ -215,7 +217,6 @@ export function StreamingAnalysis({
       id: `bull-${i}`,
       type: 'bullish' as const,
       point,
-      confidence: Math.round((result.confidence ?? 0.75) * 100),
       sources: [],
     }))
   }, [result])
@@ -226,7 +227,6 @@ export function StreamingAnalysis({
       id: `bear-${i}`,
       type: 'bearish' as const,
       point,
-      confidence: Math.round((result.confidence ?? 0.75) * 100 * 0.85),
       sources: [],
     }))
   }, [result])
@@ -293,6 +293,8 @@ export function StreamingAnalysis({
                 bearArguments: result.bearArguments,
                 riskScore: result.riskScore ?? null,
                 opportunityScore: null,
+                sources: result.explainability?.sources ?? [],
+                unreferencedClaims: result.unreferencedClaims ?? [],
                 createdAt: new Date().toISOString(),
               })
             }
@@ -315,6 +317,8 @@ export function StreamingAnalysis({
                 bearArguments: result.bearArguments,
                 riskScore: result.riskScore ?? null,
                 opportunityScore: null,
+                sources: result.explainability?.sources ?? [],
+                unreferencedClaims: result.unreferencedClaims ?? [],
                 createdAt: new Date().toISOString(),
               })
             }
@@ -337,6 +341,8 @@ export function StreamingAnalysis({
                 bearArguments: result.bearArguments,
                 riskScore: result.riskScore ?? null,
                 opportunityScore: null,
+                sources: result.explainability?.sources ?? [],
+                unreferencedClaims: result.unreferencedClaims ?? [],
                 createdAt: new Date().toISOString(),
               })
             }
@@ -359,6 +365,8 @@ export function StreamingAnalysis({
                 bearArguments: result.bearArguments,
                 riskScore: result.riskScore ?? null,
                 opportunityScore: null,
+                sources: result.explainability?.sources ?? [],
+                unreferencedClaims: result.unreferencedClaims ?? [],
                 createdAt: new Date().toISOString(),
               })
             }
@@ -377,6 +385,8 @@ export function StreamingAnalysis({
                 verdict={result.verdict}
                 confidence={Math.round(result.confidence * 100)}
                 summary={result.summary}
+                explainability={result.explainability}
+                unreferencedClaims={result.unreferencedClaims}
               />
               <ReasoningList bullish={bullishPoints} bearish={bearishPoints} citations={[]} />
               {result.explainability && (

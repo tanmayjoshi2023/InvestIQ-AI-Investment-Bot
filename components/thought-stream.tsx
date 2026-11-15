@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, type JSX } from 'react'
-import { Zap, TrendingUp, BarChart3, Users, AlertCircle, Sparkles, ClipboardList, Calculator, TrendingDown, Scale, ShieldCheck } from 'lucide-react'
+import { Zap, TrendingUp, BarChart3, Users, AlertCircle, Sparkles, ClipboardList, Calculator, TrendingDown, Scale, ShieldCheck, FileSearch } from 'lucide-react'
 
 interface Thought {
   id: string
@@ -25,6 +25,7 @@ const agentIcons: Record<string, React.ReactNode> = {
   'Bear Case': <TrendingDown className="w-4 h-4" />,
   'Judge': <Scale className="w-4 h-4" />,
   'Verifier': <ShieldCheck className="w-4 h-4" />,
+  'Evidence Availability': <FileSearch className="w-4 h-4" />,
 }
 
 export function ThoughtStream({

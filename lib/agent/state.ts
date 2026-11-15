@@ -111,7 +111,7 @@ export const InvestmentAnalysisAnnotation = Annotation.Root({
   financialScore: Annotation<number>,
   marketScore: Annotation<number>,
   sentimentScore: Annotation<number>,
-  competitionScore: Annotation<number>,
+  competitionScore: Annotation<number | null>,
   riskScore: Annotation<number>,
   compositeScore: Annotation<number>,
 
@@ -132,8 +132,7 @@ export const InvestmentAnalysisAnnotation = Annotation.Root({
   confidenceScore: Annotation<number>,
   reasoning: Annotation<string>,
   explainability: Annotation<ExplainabilityPanel | null>,
-  groundingScore: Annotation<number>,
-  uncitedClaims: Annotation<string[]>({
+  unreferencedClaims: Annotation<string[]>({
     reducer: appendReducer,
     default: () => [],
   }),
@@ -176,13 +175,12 @@ export function createInitialState(input: {
     financialScore: 0,
     marketScore: 0,
     sentimentScore: 0,
-    competitionScore: 0,
+    competitionScore: null,
     riskScore: 0,
     compositeScore: 0,
     bullConfidence: 0,
     bearConfidence: 0,
     confidenceScore: 0,
-    groundingScore: 0,
     dataQualityScore: 1,
     explainability: null,
     reasoning: '',

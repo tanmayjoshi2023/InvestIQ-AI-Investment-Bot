@@ -59,7 +59,7 @@ export function AnalyzeForm({ ticker, company }: AnalyzeFormProps) {
             AI Investment Analysis
           </CardTitle>
           <CardDescription>
-            Get comprehensive investment research powered by 8 specialized AI agents in under 90 seconds
+            Generate a multi-stage report from available data. Scores and model confidence are heuristic; claims are not independently fact-checked.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -69,7 +69,7 @@ export function AnalyzeForm({ ticker, company }: AnalyzeFormProps) {
                 <h3 className="font-semibold text-sm">What You&apos;ll Get:</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li>✓ BUY/HOLD/PASS verdict</li>
-                  <li>✓ Confidence score (0–100%)</li>
+                  <li>✓ Heuristic model confidence (not a probability)</li>
                   <li>✓ Financial analysis</li>
                   <li>✓ News analysis</li>
                 </ul>
@@ -77,10 +77,10 @@ export function AnalyzeForm({ ticker, company }: AnalyzeFormProps) {
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm">Analysis Includes:</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>✓ Competitor analysis</li>
+                  <li>✓ Competitive data availability status</li>
                   <li>✓ Bull vs Bear arguments</li>
                   <li>✓ Risk assessment</li>
-                  <li>✓ Verified sources</li>
+                  <li>✓ Retrieved sources (not claim-verified)</li>
                 </ul>
               </div>
             </div>

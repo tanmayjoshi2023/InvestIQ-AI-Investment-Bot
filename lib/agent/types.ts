@@ -13,7 +13,7 @@ export interface ScoreBreakdown {
   financial: number
   market: number
   sentiment: number
-  competition: number
+  competition: number | null
   risk: number
   composite: number
 }
@@ -60,8 +60,8 @@ export interface OrchestratorState {
   opportunityScore?: number
   compositeScore?: number
   explainability?: ExplainabilityPanel
-  groundingScore?: number
-  hallucinations?: string[]
+  unreferencedClaims?: string[]
+  factualVerificationStatus: 'not_performed'
   totalExecutionTimeMs: number
 }
 

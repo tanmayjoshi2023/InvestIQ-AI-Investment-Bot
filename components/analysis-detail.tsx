@@ -82,8 +82,8 @@ export function AnalysisDetail({ analysis }: AnalysisDetailProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {analysis.confidence && (
                 <div>
-                  <div className="text-sm text-muted-foreground mb-1">Confidence</div>
-                  <div className="text-2xl font-bold">{(analysis.confidence * 100).toFixed(0)}%</div>
+                  <div className="text-sm text-muted-foreground mb-1">Model confidence (heuristic, not a probability)</div>
+                  <div className="text-2xl font-bold">{(analysis.confidence * 100).toFixed(0)}/100</div>
                   <div className="h-2 bg-gray-200 rounded mt-2">
                     <div
                       className="h-2 bg-green-500 rounded"
@@ -176,13 +176,13 @@ export function AnalysisDetail({ analysis }: AnalysisDetailProps) {
         </Card>
       )}
 
-      {/* Hallucinations Warning */}
+      {/* Claims without a resolvable source reference */}
       {analysis.hallucinations && analysis.hallucinations.length > 0 && (
         <Card className="border-yellow-200 bg-yellow-50/30">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-yellow-600" />
-              Verification Notes
+              Source-reference notes (not factual verification)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -202,7 +202,7 @@ export function AnalysisDetail({ analysis }: AnalysisDetailProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Sources</CardTitle>
-            <CardDescription>Data sources used in this analysis</CardDescription>
+            <CardDescription>Retrieved sources; factual claims were not independently verified against their contents.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">

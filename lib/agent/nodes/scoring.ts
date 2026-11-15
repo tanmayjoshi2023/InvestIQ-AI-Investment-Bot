@@ -1,5 +1,5 @@
 import type { InvestmentAnalysisState } from '@/lib/agent/state'
-import { buildScoreBreakdown, calculateCompositeScore, WEIGHTS } from '@/lib/agent/scoring'
+import { buildScoreBreakdown, WEIGHTS } from '@/lib/agent/scoring'
 import type { ExplainabilityPanel } from '@/lib/agent/types'
 import { makeAgentOutput, makeThought, stateInput } from './helpers'
 import { emitThought } from '@/lib/agent/event-bus'
@@ -30,7 +30,8 @@ export async function scoringNode(state: InvestmentAnalysisState): Promise<Parti
     sources: state.citations.map((c) => ({ title: c.title, url: c.url, type: c.type })),
   }
 
-  const output = `Composite: ${scores.composite}/100 | Financial ${scores.financial} | Market ${scores.market} | Sentiment ${scores.sentiment} | Competition ${scores.competition} | Risk ${scores.risk}`
+  const competitionLabel = scores.competition === null ? 'Competition unavailable' : `Competition ${scores.competition}`
+  const output = `Composite: ${scores.composite}/100 | Financial ${scores.financial} | Market ${scores.market} | Sentiment ${scores.sentiment} | ${competitionLabel} | Risk ${scores.risk}`
 
   const agent = makeAgentOutput('Scoring Engine', 'scoring', input, output, 1, Date.now() - start)
 

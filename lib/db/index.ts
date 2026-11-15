@@ -1,8 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from './schema'
+import { createConnectionCache } from './connection-cache'
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://localhost/neondb'
+const connectionStatus = createConnectionCache(5000)
 
 // Create a singleton pool
 let poolInstance: Pool | null = null
@@ -68,12 +70,17 @@ const dbProxy = new Proxy(getDb, {
 export { getPool as pool, dbProxy as db }
 
 export async function checkDbConnection(): Promise<boolean> {
+  const cachedStatus = connectionStatus.read()
+  if (cachedStatus.fromCache) return cachedStatus.available
+
   let client: any = null
   try {
     const p = getPool()
     client = await p.connect()
+    connectionStatus.markAvailable()
     return true
   } catch (err) {
+    connectionStatus.markUnavailable()
     console.warn('Database offline check failed:', err)
     return false
   } finally {

@@ -18,10 +18,10 @@ interface DebateViewProps {
   companyName?: string
   bullPoints: DebatePoint[]
   bearPoints: DebatePoint[]
-  bullConfidence: number
-  bearConfidence: number
+  bullConfidence?: number
+  bearConfidence?: number
   verdict: Verdict
-  confidence: number
+  confidence?: number
   reasoning: string
   citations?: Array<{ title: string; url: string; type: string }>
 }
@@ -71,12 +71,9 @@ export function DebateView({
               </div>
             </div>
             <div className="text-right">
-              <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                {bullConfidence}% Confidence
-              </span>
-              <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-green-500" style={{ width: `${bullConfidence}%` }} />
-              </div>
+              {bullConfidence !== undefined && (
+                <span className="text-xs text-muted-foreground">Bull model confidence (heuristic): {bullConfidence}/100</span>
+              )}
             </div>
           </div>
 
@@ -145,12 +142,9 @@ export function DebateView({
               </div>
             </div>
             <div className="text-right">
-              <span className="text-sm font-semibold text-red-600 dark:text-red-400">
-                {bearConfidence}% Confidence
-              </span>
-              <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-red-500" style={{ width: `${bearConfidence}%` }} />
-              </div>
+              {bearConfidence !== undefined && (
+                <span className="text-xs text-muted-foreground">Bear model confidence (heuristic): {bearConfidence}/100</span>
+              )}
             </div>
           </div>
 
@@ -218,7 +212,10 @@ export function DebateView({
             <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-2 block">
               Synthesized Verdict
             </span>
-            <VerdictBadge verdict={verdict} confidence={confidence} size="lg" variant="glow" />
+            <VerdictBadge verdict={verdict} size="lg" variant="glow" />
+            {confidence !== undefined && (
+              <p className="mt-2 text-xs text-muted-foreground">Model confidence (heuristic, not a probability): {confidence}/100</p>
+            )}
           </div>
 
           <div className="space-y-3 flex-grow">
